@@ -11,23 +11,10 @@ inputs:
   token:
     required: true
     type: string
-  inventory_filename:
-    required: true
-    type: string
-    default: stv.yml
 
 runs:
   using: "composite"
   steps:
-  - uses: actions/download-artifact@v3
-    continue-on-error: true
-    with:
-      name: components
-      path: ${{ inputs.inventory_filename }}
-  - run: | 
-      if [ -f ${{ inputs.inventory_filename }} ]; then exit 0; fi
-      echo "components:" > ${{ inputs.inventory_filename }}
-    shell: bash
   # the following steps extract the component name and version from the given component
   # @todo to make this process more maintainable, either
   #  - rename the repository to match the name of the component
@@ -49,14 +36,11 @@ runs:
       out-file-path: ${{ steps.package_name.outputs.package_name }}
       extract: true
       token: ${{ inputs.token }}
-  - run: echo "  - ${{ steps.package_name.outputs.package_name }}" >> ${{ inputs.inventory_filename }}
+  - run: echo ${{ steps.package_name.outputs.package_name }}-${{ steps.package_version.outputs.package_version }} > ${{ steps.package_name.outputs.package_name }}/version
     shell: bash
   # each matrix run will update the same artifact and add the respective component folder
   # and the updated component spec file
   - uses: actions/upload-artifact@v3
     with:
       name: components
-      path: |
-        ${{ steps.package_name.outputs.package_name }}
-        ${{ inputs.inventory_filename }}
-  
+      path: ${{ steps.package_name.outputs.package_name }}
