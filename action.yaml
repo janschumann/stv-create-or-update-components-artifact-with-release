@@ -33,18 +33,18 @@ runs:
       repository: ${{ inputs.org }}/${{ steps.repo_name.outputs.repo_name }}
       tag: ${{ steps.package_version.outputs.package_version }}
       fileName: ${{ steps.package_name.outputs.package_name }}.zip
-      out-file-path: ${{ steps.package_name.outputs.package_name }}/
+      out-file-path: pkg/${{ steps.package_name.outputs.package_name }}/
       extract: true
       token: ${{ inputs.token }}
   - run: find .
     shell: bash
-  - run: rm ${{ steps.package_name.outputs.package_name }}/${{ steps.package_name.outputs.package_name }}.zip
+  - run: rm pkg/${{ steps.package_name.outputs.package_name }}/${{ steps.package_name.outputs.package_name }}.zip
     shell: bash
-  - run: echo ${{ steps.package_name.outputs.package_name }}-${{ steps.package_version.outputs.package_version }} > ${{ steps.package_name.outputs.package_name }}/version
+  - run: echo ${{ steps.package_name.outputs.package_name }}-${{ steps.package_version.outputs.package_version }} > pkg/${{ steps.package_name.outputs.package_name }}/version
     shell: bash
   # each matrix run will update the same artifact and add the respective component folder
   # and the updated component spec file
   - uses: actions/upload-artifact@v3
     with:
       name: components
-      path: ${{ steps.package_name.outputs.package_name }}/
+      path: pkg/
