@@ -1,0 +1,54 @@
+name: stv-create-or-update-components-artifact-with-release
+description: Action to update components artifact with the given component
+
+inputs:
+  org:
+    required: true
+    type: string
+  component:
+    required: true
+    type: string
+  inventory_filename:
+    required: true
+    type: string
+    default: stv.yml
+
+runs:
+  using: "composite"
+  steps:
+  - uses: actions/download-artifact@v3
+    continue-on-error: true
+    with:
+      name: components
+      path: ${{ inputs.inventory_filename }}
+  - run: | 
+      if [ -f stv.yml ]; then exit 0; fi
+      echo "components:" > ${{ inputs.inventory_filename }}
+  # the following steps extract the component name and version from the given component
+  # @todo to make this process more maintainable, either
+  #  - rename the repository to match the name of the component
+  #  - provide a list of objects including component name, repo name and version
+  - id: repo_name
+    run: echo "repo_name=$(echo ${{ inputs.component }} | awk -F'-v' '{print $1}')" >> "$GITHUB_OUTPUT"
+  - id: package_version
+    run: echo "package_version=v$(echo ${{ inputs.component }} | awk -F'-v' '{print $2}')" >> "$GITHUB_OUTPUT"
+  - id: package_name
+    run: echo "package_name=$(echo ${{ steps.repo_name.outputs.repo_name }} | sed 's/com_//')" >> "$GITHUB_OUTPUT"
+  - uses: robinraju/release-downloader@v1.8
+    with:
+      repository: ${{ inputs.org }}/${{ steps.repo_name.outputs.repo_name }}
+      tag: ${{ steps.package_version.outputs.package_version }}
+      zipBall: true
+      out-file-path: ${{ steps.package_name.outputs.package_name }}
+      extract: true
+      token: ${{ secrets.JOOMLA_COMPONENT_RELEASE_TOKEN }}
+  - run: echo "  - ${{ steps.package_name.outputs.package_name }}" >> ${{ inputs.inventory_filename }}
+  # each matrix run will update the same artifact and add the respective component folder
+  # and the updated component spec file
+  - uses: actions/upload-artifact@v3
+    with:
+      name: components
+      path: |
+        ${{ steps.package_name.outputs.package_name }}
+        ${{ inputs.inventory_filename }}
+  
