@@ -8,6 +8,9 @@ inputs:
   component:
     required: true
     type: string
+  token:
+    required: true
+    type: string
   inventory_filename:
     required: true
     type: string
@@ -45,7 +48,7 @@ runs:
       zipBall: true
       out-file-path: ${{ steps.package_name.outputs.package_name }}
       extract: true
-      token: ${{ secrets.JOOMLA_COMPONENT_RELEASE_TOKEN }}
+      token: ${{ inputs.token }}
   - run: echo "  - ${{ steps.package_name.outputs.package_name }}" >> ${{ inputs.inventory_filename }}
     shell: bash
   # each matrix run will update the same artifact and add the respective component folder
