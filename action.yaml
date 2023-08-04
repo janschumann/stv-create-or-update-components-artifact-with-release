@@ -36,6 +36,8 @@ runs:
       out-file-path: ${{ steps.package_name.outputs.package_name }}/
       extract: true
       token: ${{ inputs.token }}
+  - run: find .
+    shell: bash
   - run: rm ${{ steps.package_name.outputs.package_name }}/${{ steps.package_name.outputs.package_name }}.zip
     shell: bash
   - run: echo ${{ steps.package_name.outputs.package_name }}-${{ steps.package_version.outputs.package_version }} > ${{ steps.package_name.outputs.package_name }}/version
@@ -45,4 +47,4 @@ runs:
   - uses: actions/upload-artifact@v3
     with:
       name: components
-      path: ${{ steps.package_name.outputs.package_name }}
+      path: ${{ steps.package_name.outputs.package_name }}/
